@@ -360,12 +360,12 @@ Analysis</h1>
 
 <pre><code>## Rows: 16,000
 ## Columns: 6
-## $ source_file &lt;chr&gt; &quot;craigslist_page_0.txt&quot;, &quot;craigslist_page_0.txt…
-## $ title       &lt;chr&gt; &quot;1965 FORD RANCHERO&quot;, &quot;2015 honda accord&quot;, &quot;201…
-## $ detail      &lt;chr&gt; &quot;san jose east7m ago25k mi$28,000pic&quot;, &quot;San Fra…
-## $ year        &lt;dbl&gt; 1965, 2015, 2015, 2013, 2014, 2007, 2004, 2018,…
-## $ mileage     &lt;chr&gt; &quot;25k mi&quot;, &quot;95k mi&quot;, &quot;113k mi&quot;, &quot;129k mi&quot;, &quot;12k …
-## $ price       &lt;dbl&gt; 28000, 14000, 8900, 9400, 33250, 3900, 5555, 62…</code></pre>
+## $ source_file &lt;chr&gt; &quot;craigslist_page_0.txt&quot;, &quot;craigslist_page_0.txt&quot;, &quot;craigsl…
+## $ title       &lt;chr&gt; &quot;1965 FORD RANCHERO&quot;, &quot;2015 honda accord&quot;, &quot;2015 Honda Civ…
+## $ detail      &lt;chr&gt; &quot;san jose east7m ago25k mi$28,000pic&quot;, &quot;San Francisco11m a…
+## $ year        &lt;dbl&gt; 1965, 2015, 2015, 2013, 2014, 2007, 2004, 2018, 2009, 2015…
+## $ mileage     &lt;chr&gt; &quot;25k mi&quot;, &quot;95k mi&quot;, &quot;113k mi&quot;, &quot;129k mi&quot;, &quot;12k mi&quot;, &quot;200k …
+## $ price       &lt;dbl&gt; 28000, 14000, 8900, 9400, 33250, 3900, 5555, 62000, 4650, …</code></pre>
 <div id="overview" class="section level1">
 <h1>Overview</h1>
 <p>This project analyzes approximately 16,000 used vehicle listings
@@ -382,12 +382,12 @@ price information. The final dataset contains approximately 16,000
 observations. # Data Cleaning</p>
 <pre><code>## Rows: 15,280
 ## Columns: 6
-## $ source_file &lt;chr&gt; &quot;craigslist_page_0.txt&quot;, &quot;craigslist_page_0.txt…
-## $ title       &lt;chr&gt; &quot;1965 FORD RANCHERO&quot;, &quot;2015 honda accord&quot;, &quot;201…
-## $ detail      &lt;chr&gt; &quot;san jose east7m ago25k mi$28,000pic&quot;, &quot;San Fra…
-## $ year        &lt;dbl&gt; 1965, 2015, 2015, 2013, 2014, 2007, 2004, 2018,…
-## $ mileage     &lt;dbl&gt; 25000, 95000, 113000, 129000, 12000, 200000, 11…
-## $ price       &lt;dbl&gt; 28000, 14000, 8900, 9400, 33250, 3900, 5555, 62…</code></pre>
+## $ source_file &lt;chr&gt; &quot;craigslist_page_0.txt&quot;, &quot;craigslist_page_0.txt&quot;, &quot;craigsl…
+## $ title       &lt;chr&gt; &quot;1965 FORD RANCHERO&quot;, &quot;2015 honda accord&quot;, &quot;2015 Honda Civ…
+## $ detail      &lt;chr&gt; &quot;san jose east7m ago25k mi$28,000pic&quot;, &quot;San Francisco11m a…
+## $ year        &lt;dbl&gt; 1965, 2015, 2015, 2013, 2014, 2007, 2004, 2018, 2009, 2015…
+## $ mileage     &lt;dbl&gt; 25000, 95000, 113000, 129000, 12000, 200000, 111000, 63000…
+## $ price       &lt;dbl&gt; 28000, 14000, 8900, 9400, 33250, 3900, 5555, 62000, 4650, …</code></pre>
 <pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 ##       1   63000   93000   97623  129000  250000</code></pre>
 <pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
@@ -398,20 +398,20 @@ observations. # Data Cleaning</p>
 </div>
 <div id="exploratory-data-analysis" class="section level1">
 <h1>Exploratory Data Analysis</h1>
-<pre><code>##  source_file           title              detail         
-##  Length:14320       Length:14320       Length:14320      
-##  Class :character   Class :character   Class :character  
-##  Mode  :character   Mode  :character   Mode  :character  
-##                                                          
-##                                                          
-##                                                          
-##       year         mileage           price      
-##  Min.   :1994   Min.   :  4248   Min.   : 1000  
-##  1st Qu.:2007   1st Qu.: 63000   1st Qu.: 6999  
-##  Median :2015   Median : 94000   Median :13000  
-##  Mean   :2014   Mean   :100180   Mean   :17223  
-##  3rd Qu.:2019   3rd Qu.:129000   3rd Qu.:22995  
-##  Max.   :2026   Max.   :250000   Max.   :84995</code></pre>
+<pre><code>##  source_file           title              detail               year     
+##  Length:14320       Length:14320       Length:14320       Min.   :1994  
+##  Class :character   Class :character   Class :character   1st Qu.:2007  
+##  Mode  :character   Mode  :character   Mode  :character   Median :2015  
+##                                                           Mean   :2014  
+##                                                           3rd Qu.:2019  
+##                                                           Max.   :2026  
+##     mileage           price      
+##  Min.   :  4248   Min.   : 1000  
+##  1st Qu.: 63000   1st Qu.: 6999  
+##  Median : 94000   Median :13000  
+##  Mean   :100180   Mean   :17223  
+##  3rd Qu.:129000   3rd Qu.:22995  
+##  Max.   :250000   Max.   :84995</code></pre>
 </div>
 <div id="analysis" class="section level1 tabset">
 <h1 class="tabset">Analysis</h1>
