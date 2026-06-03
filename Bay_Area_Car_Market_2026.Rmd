@@ -6,7 +6,11 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE
+)
 ```
 
 
@@ -82,7 +86,13 @@ nrow(cars_model)
 summary(cars_model)
 ```
 
-# Price vs Mileage
+# Analysis {.tabset}
+
+
+
+
+## Price vs Mileage
+
 
 ```{r}
 
@@ -99,7 +109,7 @@ ggplot(cars_model,
 ```
 
 
-# Vehicle Age Analysis
+## Vehicle Age Analysis
 
 ```{r}
 
@@ -116,7 +126,7 @@ ggplot(cars_model,
 ```
 
 
-# Linear Regression Model
+## Linear Regression Model
 
 ```{r}
 model1 <- lm(price ~ mileage + year,
@@ -125,7 +135,9 @@ model1 <- lm(price ~ mileage + year,
 summary(model1)
 ```
 A multiple linear regression model was estimated using vehicle price as the dependent variable and mileage and model year as explanatory variables. Both variables were statistically significant at the 1% level (p < 0.001). Mileage exhibited a negative relationship with price, while newer model years were associated with higher vehicle values. The model achieved an R-squared of 0.424, indicating that approximately 42.4% of the variation in vehicle prices can be explained by mileage and vehicle year.
-# Random Forest Model
+
+
+## Random Forest Model
 
 ```{r}
 library(randomForest)
