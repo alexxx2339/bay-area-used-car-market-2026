@@ -1,322 +1,38 @@
 ---
-title: "2026 Bay Area Used Vehicle Market Analysis"
+title: "Bay Area Used Vehicle Market Analysis"
 author: "Alejandro Alvarez"
 date: "`r Sys.Date()`"
-output:
-  html_document:
-    theme: lumen
-    toc: true
-    toc_float: true
-    code_folding: hide
+output: html_document
 ---
 
-
-<style>
-body {
-  background: linear-gradient(135deg, #eef4ff 0%, #f8fafc 45%, #ecfdf5 100%);
-  font-family: "Segoe UI", Arial, sans-serif;
-  color: #111827;
-}
-
-.main-container {
-  max-width: 1180px;
-  background: rgba(255,255,255,0.94);
-  padding: 35px;
-  border-radius: 22px;
-  box-shadow: 0 10px 35px rgba(0,0,0,0.10);
-  margin-top: 25px;
-  margin-bottom: 40px;
-}
-
-h1 {
-  color: #0f172a;
-  font-weight: 800;
-  border-bottom: 4px solid #2563eb;
-  padding-bottom: 10px;
-}
-
-h2 {
-  color: #2563eb;
-  font-weight: 700;
-}
-
-h3 {
-  color: #059669;
-  font-weight: 650;
-}
-
-.nav-tabs > li > a {
-  color: #2563eb;
-  font-weight: 700;
-  border-radius: 10px 10px 0 0;
-}
-
-.nav-tabs > li.active > a,
-.nav-tabs > li.active > a:focus,
-.nav-tabs > li.active > a:hover {
-  background-color: #2563eb !important;
-  color: white !important;
-}
-
-blockquote {
-  border-left: 6px solid #2563eb;
-  background: #eff6ff;
-  padding: 16px 20px;
-  border-radius: 12px;
-}
-
-pre {
-  background: #f8fafc;
-  border-radius: 12px;
-}
-
-.card-box {
-  background: white;
-  border-radius: 18px;
-  padding: 22px;
-  margin: 18px 0;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-  border-left: 6px solid #2563eb;
-}
-
-.metric-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-  margin: 25px 0;
-}
-
-.metric-card {
-  background: linear-gradient(135deg, #2563eb, #059669);
-  color: white;
-  padding: 22px;
-  border-radius: 18px;
-  text-align: center;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-}
-
-.metric-card h2 {
-  color: white;
-  margin: 0;
-  font-size: 32px;
-}
-
-.metric-card p {
-  margin: 6px 0 0;
-  font-weight: 600;
-}
-</style>
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(
-  echo = FALSE,
-  warning = FALSE,
-  message = FALSE
-)
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
 
-```{r}
+# Bay Area Used Vehicle Market Analysis
 
-library(tidyverse)
-library(ggplot2)
-library(randomForest)
+### Project Portfolio
 
+## Version 1: Exploratory Data Analysis
 
+[Open Version 1 Report](Version_1.html)
 
-cars <- read_csv("data/craigslist_cars_sample.csv")
+---
 
-```
-# Overview
-<div class="metric-grid">
+## Version 2: Machine Learning Analysis
 
-<div class="metric-card">
-<h2>16,000</h2>
-<p>Raw Listings</p>
-</div>
+[Open Version 2 Report](Version-2.html)
 
-<div class="metric-card">
-<h2>14,320</h2>
-<p>Modeling Observations</p>
-</div>
+---
 
-<div class="metric-card">
-<h2>90.3%</h2>
-<p>Random Forest Variance Explained</p>
-</div>
+## Version 3: Interactive Vehicle Price Estimator
 
-</div>
+Interactive estimator using:
 
-<div class="card-box">
-This project analyzes approximately 16,000 used vehicle listings collected from Craigslist in the San Francisco Bay Area during 2026. The objective is to understand how factors such as vehicle age, mileage, and model characteristics influence vehicle prices. The project includes data collection, cleaning, exploratory data analysis (EDA), regression modeling, and machine learning techniques to identify key drivers of vehicle value.
-</div>
+- Multiple Regression
+- Random Forest
+- XGBoost
 
-# Data Collection
-
-Vehicle listings were collected from Craigslist's San Francisco Bay Area automobile marketplace using Python and Playwright. Search result pages were downloaded and parsed into a structured dataset containing vehicle title, year, mileage, and asking price information. The final dataset contains approximately 16,000 observations.
-
-# Data Cleaning
-
-```{r}
-cars_clean <- cars %>%
-  mutate(
-    mileage = str_remove_all(mileage, "mi"),
-    mileage = str_remove_all(mileage, ","),
-    mileage = str_trim(mileage),
-
-    mileage = case_when(
-      str_detect(mileage, "k") ~
-        as.numeric(str_remove(mileage, "k")) * 1000,
-      TRUE ~ as.numeric(mileage)
-    )
-  ) %>%
-  filter(
-    !is.na(price),
-    !is.na(year),
-    !is.na(mileage)
-  )
-
-
-
-
-
-
-
-```
-
-```{r}
-
-cars_model <- cars_clean %>%
-  filter(
-    year >= 1990,
-    year <= 2026,
-    price >= 1000,
-    price <= 100000,
-    mileage <= 250000
-  )
-
-
-```
-
-After cleaning, the final modeling dataset contains 14,320 listings.
-
-
-
-```{r}
-library(knitr)
-
-metrics <- tibble(
-  Metric = c("Raw Listings", "Cleaned Listings", "Modeling Observations",
-             "Linear Regression R²", "Random Forest Variance Explained"),
-  Value = c("16,000", "15,280", "14,320", "42.4%", "90.3%")
-)
-
-kable(metrics, caption = "Project Summary")
-
-
-
-```
-
-
-# Exploratory Data Analysis
-
-The exploratory data analysis examined the relationships between vehicle price, mileage, and model year. The dataset contained approximately 14,320 cleaned observations after removing missing values and extreme outliers.
-
-Initial summary statistics showed that vehicle prices varied widely, reflecting differences in vehicle age, condition, and type. Mileage ranged from a few hundred miles to over 250,000 miles, while model years spanned from older vehicles to nearly new models.
-
-Scatterplots revealed a negative relationship between price and mileage, indicating that vehicles with higher mileage generally sold for lower prices. In contrast, newer model years tended to have higher asking prices, suggesting that age is an important factor in vehicle valuation.
-# Analysis {.tabset}
-
-
-
-
-## Price vs Mileage
-
-
-```{r}
-
-ggplot(cars_model,
-       aes(x = mileage,
-           y = price)) +
-  geom_point(alpha = 0.15) +
-  geom_smooth(method = "lm") +
-  labs(
-    title = "Price vs Mileage",
-    x = "Mileage",
-    y = "Price ($)"
-  )
-```
-
-
-## Vehicle Age Analysis
-
-```{r}
-
-ggplot(cars_model,
-       aes(x = year,
-           y = price)) +
-  geom_point(alpha = 0.15) +
-  geom_smooth(method = "lm") +
-  labs(
-    title = "Price vs Vehicle Year",
-    x = "Year",
-    y = "Price ($)"
-  )
-```
-
-
-## Linear Regression Model
-
-```{r}
-model1 <- lm(price ~ mileage + year,
-             data = cars_model)
-
-summary(model1)
-```
-A multiple linear regression model was estimated using vehicle price as the dependent variable and mileage and model year as explanatory variables. Both variables were statistically significant at the 1% level (p < 0.001). Mileage exhibited a negative relationship with price, while newer model years were associated with higher vehicle values. The model achieved an R-squared of 0.424, indicating that approximately 42.4% of the variation in vehicle prices can be explained by mileage and vehicle year.
-
-
-## Random Forest Model
-
-```{r}
-library(randomForest)
-
-
-
-```
-
-
-
-```{r}
-set.seed(123)
-
-rf_model <- randomForest(
-  price ~ mileage + year,
-  data = cars_model,
-  ntree = 500
-)
-
-rf_model
-```
-A Random Forest regression model was estimated using vehicle mileage and model year as predictors of vehicle price. The model consisted of 500 decision trees and explained approximately 90.3% of the variation in vehicle prices. Compared to the linear regression model (R² = 42.4%), the Random Forest demonstrated substantially improved predictive performance, suggesting that vehicle pricing relationships are nonlinear and better captured through machine learning techniques.
-
-```{r}
-
-importance(rf_model)
-
-varImpPlot(rf_model)
-```
-Variable importance analysis revealed that mileage was the most influential predictor of vehicle price, followed by vehicle year. This result is consistent with economic intuition, as vehicle depreciation is strongly associated with accumulated mileage. While newer vehicles generally command higher prices, mileage appears to be the dominant factor in determining market value within the Craigslist dataset.
-
-# Key Findings
-- The final dataset contained approximately 14,320 cleaned vehicle listings after removing incomplete observations and outliers.
-- Vehicle prices exhibited a negative relationship with mileage and a positive relationship with model year.
-- The linear regression model explained approximately 42.4% of the variation in vehicle prices.
-- The Random Forest model explained approximately 90.3% of the variation in vehicle prices, substantially outperforming the linear regression model.
-- Mileage was identified as the most important predictor of vehicle value, followed by vehicle year.
-
-
-# Conclusion
-This project analyzed thousands of used vehicle listings from the San Francisco Bay Area Craigslist marketplace. The results demonstrate that vehicle mileage and model year are significant determinants of vehicle price. While a traditional linear regression model provided useful insights, machine learning methods substantially improved predictive performance. The Random Forest model explained over 90% of the variation in vehicle prices, highlighting the benefits of nonlinear modeling techniques when analyzing vehicle markets.
-
-
+[View Version 3 Source Code](Version_3_Shiny_Estimator.Rmd)
