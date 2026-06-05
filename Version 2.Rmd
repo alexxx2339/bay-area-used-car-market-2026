@@ -1,6 +1,6 @@
 ---
 title: "Version 2: Bay Area Used Vehicle Price Prediction"
-author: "Alejandro Alvarez"
+author: "Alex Alvarez"
 date: "`r Sys.Date()`"
 output:
   html_document:
@@ -698,15 +698,15 @@ The XGBoost model also identifies mileage as the strongest predictor of vehicle 
 
 </div>
 
-## Vehicle Price Estimator
+## Vehicle Valuation Dashboard
 
 <div class="card-box">
 
-<b>Vehicle Price Estimator</b>
+<b>Market Price Comparison Tool</b>
 
-<br><br>
+<br>
 
-The table below demonstrates how the regression model can be used to estimate vehicle values for different combinations of mileage, model year, and manufacturer.
+This dashboard compares actual vehicle asking prices to model-predicted market values. The Difference column helps identify vehicles that may be priced above or below their estimated market value.
 
 </div>
 

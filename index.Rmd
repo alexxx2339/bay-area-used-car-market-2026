@@ -9,9 +9,33 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+<style>
+body {
+  background: linear-gradient(135deg, #eef4ff 0%, #f8fafc 100%);
+  font-family: "Segoe UI", Arial, sans-serif;
+  color: #111827;
+}
 
+.main-container {
+  max-width: 1050px;
+  background: rgba(255,255,255,0.96);
+  padding: 35px;
+  border-radius: 22px;
+  box-shadow: 0 10px 35px rgba(0,0,0,0.10);
+  margin-top: 25px;
+  margin-bottom: 40px;
+}
 
-font-weight: 750;
+h1 {
+  color: #0f172a;
+  font-weight: 800;
+  border-bottom: 4px solid #2563eb;
+  padding-bottom: 10px;
+}
+
+h2 {
+  color: #2563eb;
+  font-weight: 750;
 }
 
 a {
