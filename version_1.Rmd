@@ -271,7 +271,7 @@ ggplot(cars_model,
 model1 <- lm(price ~ mileage + year,
              data = cars_model)
 
-summary(model1)
+
 ```
 A multiple linear regression model was estimated using vehicle price as the dependent variable and mileage and model year as explanatory variables. Both variables were statistically significant at the 1% level (p < 0.001). Mileage exhibited a negative relationship with price, while newer model years were associated with higher vehicle values. The model achieved an R-squared of 0.424, indicating that approximately 42.4% of the variation in vehicle prices can be explained by mileage and vehicle year.
 
@@ -296,7 +296,7 @@ rf_model <- randomForest(
   ntree = 500
 )
 
-rf_model
+
 ```
 A Random Forest regression model was estimated using vehicle mileage and model year as predictors of vehicle price. The model consisted of 500 decision trees and explained approximately 90.3% of the variation in vehicle prices. Compared to the linear regression model (R² = 42.4%), the Random Forest demonstrated substantially improved predictive performance, suggesting that vehicle pricing relationships are nonlinear and better captured through machine learning techniques.
 
@@ -306,6 +306,7 @@ importance(rf_model)
 
 varImpPlot(rf_model)
 ```
+
 Variable importance analysis revealed that mileage was the most influential predictor of vehicle price, followed by vehicle year. This result is consistent with economic intuition, as vehicle depreciation is strongly associated with accumulated mileage. While newer vehicles generally command higher prices, mileage appears to be the dominant factor in determining market value within the Craigslist dataset.
 
 # Key Findings
