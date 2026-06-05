@@ -1,0 +1,781 @@
+---
+title: "Version 2: Bay Area Used Vehicle Price Prediction"
+author: "Alejandro Alvarez"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: flatly
+    toc: true
+    toc_float: true
+    code_folding: hide
+---
+
+
+<style>
+body {
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.main-container {
+  max-width: 1150px;
+}
+
+h1 {
+  color: #0B3D91;
+  font-weight: 700;
+}
+
+h2 {
+  color: #1E88E5;
+}
+
+.card-box {
+  background: #f8fbff;
+  border-left: 6px solid #1E88E5;
+  padding: 18px;
+  border-radius: 12px;
+  margin: 20px 0;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin: 25px 0;
+}
+
+.metric-card {
+  background: linear-gradient(135deg, #0B3D91, #1E88E5);
+  color: white;
+  padding: 22px;
+  border-radius: 16px;
+  text-align: center;
+}
+
+.metric-card h2 {
+  color: white;
+  font-size: 34px;
+  margin: 0;
+}
+</style>
+
+
+```{r}
+
+
+
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE
+)
+```
+
+
+
+```{r}
+
+
+library(tidyverse)
+library(ggplot2)
+library(randomForest)
+library(DT)
+```
+
+
+
+
+# Analysis {.tabset}
+
+
+
+
+## Executive Summary
+
+
+<div class="metric-grid">
+
+<div class="metric-card">
+<h2>16,000</h2>
+<p>Raw Listings</p>
+</div>
+
+<div class="metric-card">
+<h2>14,320</h2>
+<p>Modeling Observations</p>
+</div>
+
+<div class="metric-card">
+<h2>V2</h2>
+<p>Enhanced Price Model</p>
+</div>
+
+</div>
+
+<div class="card-box">
+
+This report extends Version 1 of the Bay Area used vehicle market project by adding feature engineering, vehicle make extraction, regression modeling, Random Forest modeling, and a price prediction framework.
+
+The goal is to estimate used vehicle market value using vehicle mileage, model year, and manufacturer information.
+
+</div>
+
+## Data Preparation
+
+
+<div class="card-box">
+
+The dataset was created from scraped Craigslist vehicle listings. This section reloads the raw CSV, cleans price, mileage, and year variables, removes incomplete observations, and filters extreme outliers.
+
+</div>
+
+
+```{r}
+
+cars <- read_csv("data/craigslist_cars_sample.csv")
+
+
+cars_clean <- cars %>%
+  mutate(
+    price = as.numeric(price),
+    year = as.numeric(year),
+    mileage = str_remove_all(mileage, "mi"),
+    mileage = str_remove_all(mileage, ","),
+    mileage = str_trim(mileage),
+    mileage = case_when(
+      str_detect(mileage, "k") ~ as.numeric(str_remove(mileage, "k")) * 1000,
+      TRUE ~ as.numeric(mileage)
+    )
+  ) %>%
+  filter(
+    !is.na(price),
+    !is.na(year),
+    !is.na(mileage)
+  )
+
+cars_v2 <- cars_clean %>%
+  filter(
+    year >= 1990,
+    year <= 2026,
+    price >= 1000,
+    price <= 100000,
+    mileage <= 250000
+  )
+  
+
+```
+
+
+
+
+
+
+
+
+```{r}
+data_summary <- tibble(
+  Metric = c("Raw Listings", "Cleaned Listings", "Final Modeling Observations"),
+  Count = c(nrow(cars), nrow(cars_clean), nrow(cars_v2))
+)
+
+datatable(
+  data_summary,
+  options = list(dom = "t"),
+  rownames = FALSE
+)
+```
+
+
+  
+  
+  
+  
+## Feature Engineering
+
+
+<div class="card-box">
+
+Feature engineering is the process of creating new variables from existing information. In this project, vehicle manufacturer information is extracted from listing titles and used as an additional predictor of market value.
+
+</div>
+
+
+
+```{r}
+cars_v2 <- cars_v2 %>%
+  mutate(
+    make = word(title, 2)
+  )
+
+
+make_summary <- cars_v2 %>%
+  count(make, sort = TRUE)
+
+datatable(
+  head(make_summary, 20),
+  options = list(pageLength = 10),
+  rownames = FALSE
+)
+
+```
+
+  
+  <div class="card-box">
+
+Toyota was the most frequently listed vehicle manufacturer in the dataset with 2,000 observations, followed by Honda with 1,280 listings. Luxury brands such as BMW and Mercedes-Benz were also strongly represented. These results suggest that both mainstream and premium vehicle segments are active within the Bay Area used vehicle market.
+
+</div>
+  
+  
+  
+## Exploratory Data Analysis 
+
+
+
+
+
+
+<div class="card-box">
+
+Summary statistics provide a high-level overview of vehicle prices, mileage, and model years within the Bay Area used vehicle market.
+
+</div>
+
+
+
+```{r}
+summary_stats <- tibble(
+  Statistic = c(
+    "Average Price",
+    "Average Mileage",
+    "Average Year",
+    "Median Price",
+    "Median Mileage"
+  ),
+
+  Value = c(
+    round(mean(cars_v2$price)),
+    round(mean(cars_v2$mileage)),
+    round(mean(cars_v2$year)),
+    round(median(cars_v2$price)),
+    round(median(cars_v2$mileage))
+  )
+)
+
+
+
+
+datatable(
+  summary_stats,
+  options = list(dom = "t"),
+  rownames = FALSE
+)
+```
+
+
+
+<div class="card-box">
+
+The average vehicle price in the dataset is approximately $17,223, while the median vehicle price is $13,000. The average mileage is approximately 100,180 miles, with a median mileage of 94,000 miles. The average model year is 2014, indicating that most vehicles in the dataset are approximately 10 to 12 years old.
+
+</div>
+
+## Price vs Mileage
+
+
+<div class="card-box">
+
+Vehicle mileage is expected to have a negative relationship with vehicle value. As vehicles accumulate mileage, depreciation generally reduces market price.
+
+</div>
+
+
+
+
+```{r}
+
+p1 <- ggplot(
+  cars_v2,
+  aes(x = mileage, y = price)
+) +
+  geom_point(
+    alpha = 0.05,
+    size = 0.8
+  ) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  labs(
+    title = "Price vs Mileage",
+    subtitle = "Higher mileage is associated with lower vehicle prices",
+    x = "Mileage",
+    y = "Price ($)"
+  ) +
+  theme_minimal()
+
+p1
+```
+
+
+<div class="card-box">
+
+The scatterplot shows a negative relationship between mileage and price. Vehicles with higher mileage generally have lower market values, which is consistent with depreciation. This visual relationship supports including mileage as an explanatory variable in the regression model.
+
+</div>
+
+
+## Price vs Model Year
+
+
+<div class="card-box">
+
+Vehicle model year is expected to have a positive relationship with market value. Newer vehicles typically command higher prices due to lower depreciation, improved technology, and reduced wear.
+
+</div>
+
+
+
+
+```{r}
+p2 <- ggplot(
+  cars_v2,
+  aes(x = year, y = price)
+) +
+  geom_point(
+    alpha = 0.05,
+    size = 0.8
+  ) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  labs(
+    title = "Price vs Model Year",
+    subtitle = "Newer vehicles tend to sell for higher prices",
+    x = "Model Year",
+    y = "Price ($)"
+  ) +
+  theme_minimal()
+
+p2
+```
+
+
+
+
+<div class="card-box">
+
+The scatterplot shows a positive relationship between model year and vehicle price. Newer vehicles generally sell for higher prices than older vehicles. This relationship supports including model year as an explanatory variable in the regression and machine learning models.
+
+</div>
+
+## Average Price by Make
+
+
+<div class="card-box">
+
+Average vehicle prices vary substantially across manufacturers. Examining average prices by make helps identify differences between mainstream and luxury vehicle segments in the Bay Area used vehicle market.
+
+</div>
+
+
+
+```{r}
+avg_price_make <- cars_v2 %>%
+  group_by(make) %>%
+  summarize(
+    avg_price = mean(price),
+    listings = n()
+  ) %>%
+  filter(listings >= 50) %>%
+  arrange(desc(avg_price))
+
+datatable(
+  avg_price_make,
+  options = list(pageLength = 10),
+  rownames = FALSE
+)
+```
+
+
+
+```{r}
+
+p3 <- avg_price_make %>%
+  slice_max(avg_price, n = 15) %>%
+  ggplot(
+    aes(
+      x = reorder(make, avg_price),
+      y = avg_price
+    )
+  ) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    title = "Average Price by Vehicle Make",
+    x = "Vehicle Make",
+    y = "Average Price ($)"
+  ) +
+  theme_minimal()
+
+p3
+
+```
+
+
+
+
+
+<div class="card-box">
+
+The chart reveals substantial variation in average vehicle prices across manufacturers. Premium brands generally command higher average prices than mainstream manufacturers. These differences suggest that vehicle make is an important predictor of market value and should improve model performance when included in the regression and machine learning models.
+
+</div>
+
+
+
+
+## Regression Analysis
+
+<div class="card-box">
+
+Multiple regression is used to estimate the relationship between vehicle price and several explanatory variables simultaneously. The model evaluates how mileage, model year, and vehicle make influence market value while holding the other factors constant.
+
+</div>
+
+
+<div class="card-box">
+
+<b>Econometric Specification</b>
+
+<br><br>
+
+Pricê = β₀ + β₁(Mileage) + β₂(Year) + β₃(Make)
+
+</div>
+
+
+```{r}
+reg_model <- lm(
+  price ~ mileage + year + make,
+  data = cars_v2
+)
+
+
+coef_table <- summary(reg_model)$coefficients
+
+datatable(
+  round(coef_table, 3),
+  options = list(pageLength = 10),
+  rownames = TRUE
+)
+
+```
+
+
+<div class="card-box">
+
+<b>Estimated Regression Equation</b>
+
+<br><br>
+
+Pricê = -1,586,000 − 0.086(Mileage) + 799.7(Year) + Make Effects
+
+<br><br>
+
+<b>Interpretation</b>
+
+<ul>
+<li>Each additional mile reduces expected vehicle value by approximately $0.086.</li>
+<li>Each newer model year increases expected vehicle value by approximately $800.</li>
+<li>Vehicle make contributes to explaining differences in used vehicle market values.</li>
+</ul>
+
+</div>
+
+
+
+While the regression model explains approximately 71% of the variation in vehicle prices, machine learning methods may capture additional nonlinear relationships and interactions between variables. The next section evaluates Random Forest models as an alternative predictive approach.
+
+## Random Forest Analysis
+
+
+<div class="card-box">
+
+Random Forest is an ensemble machine learning method that combines hundreds of decision trees to improve predictive accuracy. Unlike linear regression, Random Forest can capture nonlinear relationships and interactions among vehicle characteristics.
+
+</div>
+
+
+```{r}
+
+rf_model <- randomForest(
+  price ~ mileage + year + make,
+  data = cars_v2,
+  ntree = 500
+)
+
+
+```
+
+<div class="metric-grid">
+
+<div class="metric-card">
+<h2>500</h2>
+<p>Trees</p>
+</div>
+
+<div class="metric-card">
+<h2>98.5%</h2>
+<p>Variance Explained</p>
+</div>
+
+<div class="metric-card">
+<h2>2,676,044</h2>
+<p>MSE</p>
+</div>
+
+
+</div>
+
+
+<div class="card-box">
+
+<b>Random Forest Results</b>
+
+<br><br>
+
+The Random Forest model explains approximately 98.5% of the variation in vehicle prices, compared with 71.3% for the multiple regression model. This substantial improvement indicates that nonlinear relationships and interactions among mileage, model year, and vehicle make are important determinants of vehicle value.
+
+</div>
+
+## Variable Importance
+
+
+<div class="metric-grid">
+
+<div class="metric-card">
+<h2>#1</h2>
+<p>Mileage</p>
+</div>
+
+<div class="metric-card">
+<h2>#2</h2>
+<p>Model Year</p>
+</div>
+
+<div class="metric-card">
+<h2>#3</h2>
+<p>Vehicle Make</p>
+</div>
+
+</div>
+
+```{r}
+
+varImpPlot(rf_model)
+```
+
+
+
+
+
+
+<div class="card-box">
+
+<b>Variable Importance Results</b>
+
+<br><br>
+
+The Random Forest variable importance plot shows that mileage is the strongest predictor of vehicle price, followed by model year and vehicle make. This result is consistent with the regression findings, where mileage had a negative relationship with price and model year had a positive relationship with price.
+
+<br><br>
+
+Although vehicle make is less important than mileage and year, it still adds predictive value by capturing brand-level differences in market pricing.
+
+</div>
+
+
+
+
+
+## XGBoost Model
+
+<div class="card-box">
+
+XGBoost (Extreme Gradient Boosting) is a machine learning algorithm that builds trees sequentially, allowing each new tree to improve upon the errors of previous trees. XGBoost often achieves state-of-the-art predictive performance in structured data problems.
+
+</div>
+
+
+## XGBoost Analysis
+
+
+
+```{r}
+
+
+library(xgboost)
+
+cars_xgb <- cars_v2 %>%
+  mutate(
+    make = as.numeric(as.factor(make))
+  )
+
+X <- as.matrix(
+  cars_xgb %>%
+    select(mileage, year, make)
+)
+
+y <- cars_xgb$price
+
+xgb_model <- xgboost(
+  data = X,
+  label = y,
+  nrounds = 100,
+  objective = "reg:squarederror",
+  verbose = 0
+)
+
+xgb_model
+```
+
+
+
+<div class="card-box">
+
+<b>XGBoost Results</b>
+
+<br><br>
+
+The XGBoost model was trained using mileage, model year, and vehicle make as predictors of vehicle price. XGBoost builds trees sequentially and often achieves superior predictive performance by capturing nonlinear relationships and interactions among variables.
+
+</div>
+
+
+## XGBoost Variable Importance
+
+
+
+```{r}
+importance_matrix <- xgb.importance(
+  feature_names = c("Mileage","Year","Make"),
+  model = xgb_model
+)
+
+xgb.plot.importance(importance_matrix)
+```
+
+
+
+```{r}
+comparison <- tibble(
+  Model = c(
+    "Multiple Regression",
+    "Random Forest",
+    "XGBoost"
+  ),
+  Performance = c(
+    "R squared = 0.713",
+    "98.5 percent variance explained",
+    "Advanced gradient boosting model"
+  )
+)
+
+knitr::kable(comparison)
+```
+
+
+<div class="card-box">
+
+<b>XGBoost Variable Importance Results</b>
+
+<br><br>
+
+The XGBoost model also identifies mileage as the strongest predictor of vehicle price, followed by model year and vehicle make. This is consistent with the Random Forest results and confirms that mileage and age are the most important factors in estimating used vehicle value.
+
+</div>
+
+## Vehicle Price Estimator
+
+<div class="card-box">
+
+<b>Vehicle Price Estimator</b>
+
+<br><br>
+
+The table below demonstrates how the regression model can be used to estimate vehicle values for different combinations of mileage, model year, and manufacturer.
+
+</div>
+
+
+
+```{r}
+
+
+
+all_vehicles <- cars_v2 %>%
+  mutate(
+    Predicted_Price = round(
+      predict(reg_model, newdata = cars_v2),
+      0
+    ),
+    Difference = price - Predicted_Price
+  ) %>%
+  select(
+    title,
+    make,
+    year,
+    mileage,
+    price,
+    Predicted_Price,
+    Difference
+  )
+  datatable(
+  all_vehicles,
+  options = list(pageLength = 25),
+  rownames = FALSE,
+  filter = "top"
+)
+```
+
+
+
+### Custom Vehicle Prediction Example
+
+
+
+
+
+```{r}
+
+new_vehicle <- data.frame(
+  make = "Toyota",
+  year = 2020,
+  mileage = 75000
+)
+
+estimated_price <- round(
+  predict(reg_model, newdata = new_vehicle),
+  0
+)
+
+estimator_result <- tibble(
+  Make = new_vehicle$make,
+  Year = new_vehicle$year,
+  Mileage = new_vehicle$mileage,
+  Estimated_Price = paste0("$", format(estimated_price, big.mark = ","))
+)
+
+datatable(
+  estimator_result,
+  options = list(dom = "t"),
+  rownames = FALSE
+)
+```
+
+
+
+

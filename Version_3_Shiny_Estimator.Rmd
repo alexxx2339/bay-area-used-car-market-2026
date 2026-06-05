@@ -1,0 +1,286 @@
+---
+title: "Version 3: Interactive Used Vehicle Price Estimator"
+author: "Alejandro Alvarez"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: flatly
+    toc: true
+    toc_float: true
+runtime: shiny
+---
+
+
+<style>
+body {
+  background: #f5f7fb;
+}
+
+.main-container {
+  max-width: 900px;
+}
+
+h1, h2 {
+  color: #0B3D91;
+  font-weight: 700;
+}
+
+.shiny-input-container {
+  margin-bottom: 18px;
+}
+
+pre {
+  background: linear-gradient(135deg, #0B3D91, #1E88E5);
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+  border-radius: 16px;
+  padding: 25px;
+  border: none;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+.estimator-card {
+  background: white;
+  border-left: 6px solid #1E88E5;
+  padding: 22px;
+  border-radius: 16px;
+  margin: 20px 0;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
+</style>
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE
+)
+```
+
+
+```{r}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE
+)
+```
+
+
+
+```{r}
+
+
+library(tidyverse)
+library(randomForest)
+library(shiny)
+library(xgboost)
+library(dplyr)
+```
+
+
+
+
+
+# Interactive Used Vehicle Price Estimator
+
+
+<div class="estimator-card">
+
+Use the inputs below to estimate a used vehicle's market value using regression, Random Forest, and XGBoost models.
+
+</div>
+
+```{r}
+
+
+cars <- read_csv("data/craigslist_cars_sample.csv")
+
+cars_clean <- cars %>%
+  mutate(
+    price = as.numeric(.data$price),
+    year = as.numeric(.data$year),
+    mileage = str_remove_all(.data$mileage, "mi"),
+    mileage = str_remove_all(mileage, ","),
+    mileage = str_trim(mileage),
+    mileage = case_when(
+      str_detect(mileage, "k") ~ as.numeric(str_remove(mileage, "k")) * 1000,
+      TRUE ~ as.numeric(mileage)
+    )
+  ) %>%
+  filter(
+    !is.na(price),
+    !is.na(year),
+    !is.na(mileage)
+  )
+
+valid_makes <- c(
+  "Toyota", "Honda", "Ford", "BMW", "Mercedes-Benz",
+  "Chevrolet", "Nissan", "Subaru", "Jeep", "Tesla",
+  "Audi", "Lexus", "Dodge", "Gmc", "Hyundai", "Kia",
+  "Mini", "MINI"
+)
+
+cars_v3 <- cars_clean %>%
+  mutate(
+    make = str_to_title(word(title, 2)),
+    make = case_when(
+      make == "Bmw" ~ "BMW",
+      make == "Mini" ~ "MINI",
+      TRUE ~ make
+    )
+  ) %>%
+  filter(
+    make %in% valid_makes,
+    year >= 1990,
+    year <= 2026,
+    price >= 3000,
+    price <= 100000,
+    mileage <= 200000
+  ) %>%
+  dplyr::select(price, mileage, year, make)
+
+reg_model_v3 <- lm(
+  price ~ mileage + year + make,
+  data = cars_v3
+)
+
+rf_model_v3 <- randomForest(
+  price ~ mileage + year + make,
+  data = cars_v3,
+  ntree = 500
+)
+
+cars_xgb_v3 <- cars_v3 %>%
+  mutate(
+    make_num = as.numeric(as.factor(make))
+  )
+
+X_v3 <- as.matrix(
+  cars_xgb_v3[, c("mileage", "year", "make_num")]
+)
+
+y_v3 <- cars_xgb_v3[["price"]]
+
+xgb_model_v3 <- xgboost(
+  data = X_v3,
+  label = y_v3,
+  nrounds = 100,
+  objective = "reg:squarederror",
+  verbose = 0
+)
+
+```
+
+
+
+
+
+
+## Estimate a Vehicle Price
+
+
+```{r}
+
+
+
+
+
+selectInput(
+  inputId = "make_input",
+  label = "Vehicle Make",
+  choices = sort(unique(cars_v3$make)),
+  selected = sort(unique(cars_v3$make))[1]
+)
+
+numericInput(
+  inputId = "year_input",
+  label = "Vehicle Year",
+  value = 2020,
+  min = 1990,
+  max = 2026
+)
+numericInput(
+  inputId = "mileage_input",
+  label = "Mileage",
+  value = 75000,
+  min = 0,
+  max = 250000
+)
+
+verbatimTextOutput("price_output")
+
+output$price_output <- renderText({
+
+  new_vehicle <- data.frame(
+    make = input$make_input,
+    year = input$year_input,
+    mileage = input$mileage_input
+  )
+
+  reg_estimate <- predict(reg_model_v3, newdata = new_vehicle)
+
+  rf_estimate <- predict(rf_model_v3, newdata = new_vehicle)
+
+  make_num_value <- cars_xgb_v3 %>%
+    filter(make == input$make_input) %>%
+    pull(make_num) %>%
+    first()
+
+  if (is.na(make_num_value)) {
+    return("Please select a valid make from the dropdown menu.")
+  }
+
+  xgb_new <- as.matrix(
+    data.frame(
+      mileage = input$mileage_input,
+      year = input$year_input,
+      make_num = make_num_value
+    )
+  )
+
+  xgb_estimate <- predict(xgb_model_v3, newdata = xgb_new)
+
+  consensus_estimate <- mean(c(reg_estimate, rf_estimate, xgb_estimate))
+
+ low_estimate <- min(c(reg_estimate, rf_estimate, xgb_estimate))
+high_estimate <- max(c(reg_estimate, rf_estimate, xgb_estimate))
+
+paste0(
+  "ESTIMATED MARKET VALUE: $",
+  format(round(consensus_estimate, 0), big.mark = ","),
+
+  "\n\nPrediction Range: $",
+  format(round(low_estimate, 0), big.mark = ","),
+  " - $",
+  format(round(high_estimate, 0), big.mark = ","),
+
+  "\n\nModel Results",
+
+  "\n• Regression: $",
+  format(round(reg_estimate, 0), big.mark = ","),
+
+  "\n• Random Forest: $",
+  format(round(rf_estimate, 0), big.mark = ","),
+
+  "\n• XGBoost: $",
+  format(round(xgb_estimate, 0), big.mark = ",")
+)
+})
+
+helpText(
+  "Estimates are based on historical Craigslist listings. Accuracy may vary for makes, models, and years with limited training data."
+)
+```
+
+
+
+
+
+
+
+
+
+
+
+

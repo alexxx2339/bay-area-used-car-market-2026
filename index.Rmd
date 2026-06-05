@@ -3,11 +3,109 @@ title: "2026 Bay Area Used Vehicle Market Analysis"
 author: "Alejandro Alvarez"
 date: "`r Sys.Date()`"
 output:
-    html_document:
+  html_document:
+    theme: lumen
     toc: true
-    toc_float: true 
+    toc_float: true
+    code_folding: hide
 ---
 
+
+<style>
+body {
+  background: linear-gradient(135deg, #eef4ff 0%, #f8fafc 45%, #ecfdf5 100%);
+  font-family: "Segoe UI", Arial, sans-serif;
+  color: #111827;
+}
+
+.main-container {
+  max-width: 1180px;
+  background: rgba(255,255,255,0.94);
+  padding: 35px;
+  border-radius: 22px;
+  box-shadow: 0 10px 35px rgba(0,0,0,0.10);
+  margin-top: 25px;
+  margin-bottom: 40px;
+}
+
+h1 {
+  color: #0f172a;
+  font-weight: 800;
+  border-bottom: 4px solid #2563eb;
+  padding-bottom: 10px;
+}
+
+h2 {
+  color: #2563eb;
+  font-weight: 700;
+}
+
+h3 {
+  color: #059669;
+  font-weight: 650;
+}
+
+.nav-tabs > li > a {
+  color: #2563eb;
+  font-weight: 700;
+  border-radius: 10px 10px 0 0;
+}
+
+.nav-tabs > li.active > a,
+.nav-tabs > li.active > a:focus,
+.nav-tabs > li.active > a:hover {
+  background-color: #2563eb !important;
+  color: white !important;
+}
+
+blockquote {
+  border-left: 6px solid #2563eb;
+  background: #eff6ff;
+  padding: 16px 20px;
+  border-radius: 12px;
+}
+
+pre {
+  background: #f8fafc;
+  border-radius: 12px;
+}
+
+.card-box {
+  background: white;
+  border-radius: 18px;
+  padding: 22px;
+  margin: 18px 0;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  border-left: 6px solid #2563eb;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin: 25px 0;
+}
+
+.metric-card {
+  background: linear-gradient(135deg, #2563eb, #059669);
+  color: white;
+  padding: 22px;
+  border-radius: 18px;
+  text-align: center;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+.metric-card h2 {
+  color: white;
+  margin: 0;
+  font-size: 32px;
+}
+
+.metric-card p {
+  margin: 6px 0 0;
+  font-weight: 600;
+}
+</style>
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
   echo = FALSE,
@@ -27,12 +125,36 @@ library(randomForest)
 
 
 cars <- read_csv("data/craigslist_cars_sample.csv")
-glimpse(cars)
+
 ```
 # Overview
+<div class="metric-grid">
+
+<div class="metric-card">
+<h2>16,000</h2>
+<p>Raw Listings</p>
+</div>
+
+<div class="metric-card">
+<h2>14,320</h2>
+<p>Modeling Observations</p>
+</div>
+
+<div class="metric-card">
+<h2>90.3%</h2>
+<p>Random Forest Variance Explained</p>
+</div>
+
+</div>
+
+<div class="card-box">
 This project analyzes approximately 16,000 used vehicle listings collected from Craigslist in the San Francisco Bay Area during 2026. The objective is to understand how factors such as vehicle age, mileage, and model characteristics influence vehicle prices. The project includes data collection, cleaning, exploratory data analysis (EDA), regression modeling, and machine learning techniques to identify key drivers of vehicle value.
+</div>
+
 # Data Collection
+
 Vehicle listings were collected from Craigslist's San Francisco Bay Area automobile marketplace using Python and Playwright. Search result pages were downloaded and parsed into a structured dataset containing vehicle title, year, mileage, and asking price information. The final dataset contains approximately 16,000 observations.
+
 # Data Cleaning
 
 ```{r}
@@ -54,15 +176,11 @@ cars_clean <- cars %>%
     !is.na(mileage)
   )
 
-glimpse(cars_clean)
-
-summary(cars_clean$mileage)
-
-summary(cars_clean$price)
 
 
 
-summary(cars_clean$year)
+
+
 
 ```
 
@@ -77,18 +195,36 @@ cars_model <- cars_clean %>%
     mileage <= 250000
   )
 
-nrow(cars_model)
+
 ```
 
+After cleaning, the final modeling dataset contains 14,320 listings.
 
+
+
+```{r}
+library(knitr)
+
+metrics <- tibble(
+  Metric = c("Raw Listings", "Cleaned Listings", "Modeling Observations",
+             "Linear Regression R²", "Random Forest Variance Explained"),
+  Value = c("16,000", "15,280", "14,320", "42.4%", "90.3%")
+)
+
+kable(metrics, caption = "Project Summary")
+
+
+
+```
 
 
 # Exploratory Data Analysis
-```{r}
 
-summary(cars_model)
-```
+The exploratory data analysis examined the relationships between vehicle price, mileage, and model year. The dataset contained approximately 14,320 cleaned observations after removing missing values and extreme outliers.
 
+Initial summary statistics showed that vehicle prices varied widely, reflecting differences in vehicle age, condition, and type. Mileage ranged from a few hundred miles to over 250,000 miles, while model years spanned from older vehicles to nearly new models.
+
+Scatterplots revealed a negative relationship between price and mileage, indicating that vehicles with higher mileage generally sold for lower prices. In contrast, newer model years tended to have higher asking prices, suggesting that age is an important factor in vehicle valuation.
 # Analysis {.tabset}
 
 
