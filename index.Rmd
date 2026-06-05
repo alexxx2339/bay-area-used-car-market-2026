@@ -11,13 +11,30 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 
+font-weight: 750;
+}
+
+a {
+  color: #2563eb;
+  font-weight: 700;
+}
+
+.version-card {
+  background: #ffffff;
+  border-left: 6px solid #2563eb;
+  padding: 22px;
+  border-radius: 16px;
+  margin: 22px 0;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
+</style>
 # Bay Area Used Vehicle Market Analysis
 
 ### Project Portfolio
 
 ## Version 1: Exploratory Data Analysis
 
-[Open Version 1 Report](Version_1.html)
+[Open Version 1 Report](version_1.html)
 
 ---
 
