@@ -1,28 +1,106 @@
-\# Bay Area Used Vehicle Market Analysis
+\# 🚗 Bay Area Used Vehicle Market Analysis
 
 
 
-\## Overview
+Author: Alejandro Alvarez
 
 
 
-This project analyzes Bay Area Craigslist vehicle listings using econometric and machine learning techniques to estimate vehicle values.
+\## 📊 Project Overview
 
 
 
-\## Version 1
-
-\- Data cleaning
-
-\- Exploratory Data Analysis
-
-\- Multiple Regression
-
-\- Market trends and visualizations
+This project analyzes approximately 16,000 used vehicle listings collected from Craigslist in the San Francisco Bay Area.
 
 
 
-\## Version 2
+The goal is to understand how vehicle characteristics such as mileage, model year, and manufacturer influence vehicle prices using statistical and machine learning techniques.
+
+
+
+\---
+
+
+
+\## Version 1: Exploratory Data Analysis (EDA)
+
+
+
+Features:
+
+
+
+\- Data collection and cleaning
+
+\- Vehicle price distributions
+
+\- Mileage analysis
+
+\- Manufacturer comparisons
+
+\- Multiple regression modeling
+
+
+
+📄 Report:
+
+\[Version 1 Analysis](version\_1.html)
+
+
+
+\---
+
+
+
+\## Version 2: Vehicle Valuation Dashboard
+
+
+
+Features:
+
+
+
+\- Actual vs Predicted vehicle prices
+
+\- Market valuation comparisons
+
+\- Underpriced and overpriced vehicle identification
+
+\- Searchable interactive table
+
+
+
+📄 Report:
+
+\[Version 2 Dashboard](Version-2.html)
+
+
+
+\---
+
+
+
+\## Version 3: Interactive Vehicle Price Estimator
+
+
+
+Features:
+
+
+
+\- User enters:
+
+&#x20; - Vehicle Make
+
+&#x20; - Model Year
+
+&#x20; - Mileage
+
+
+
+Models:
+
+
 
 \- Multiple Regression
 
@@ -30,35 +108,37 @@ This project analyzes Bay Area Craigslist vehicle listings using econometric and
 
 \- XGBoost
 
-\- Variable Importance Analysis
-
-\- Vehicle Price Estimation Tables
 
 
-
-\## Version 3
-
-\- Interactive Vehicle Price Estimator
-
-\- User inputs:
-
-&#x20; - Vehicle Make
-
-&#x20; - Vehicle Year
-
-&#x20; - Mileage
-
-\- Regression Prediction
-
-\- Random Forest Prediction
-
-\- XGBoost Prediction
-
-\- Consensus Estimate
+Output:
 
 
 
-\## Tools Used
+\- Estimated Market Value
+
+\- Prediction Range
+
+\- Individual Model Predictions
+
+
+
+⚠️ Interactive version requires Shiny and is not hosted on GitHub Pages.
+
+
+
+Source Code:
+
+
+
+\[Version 3 Shiny App](Version\_3\_Shiny\_Estimator.Rmd)
+
+
+
+\---
+
+
+
+\## 🛠 Tools Used
 
 
 
@@ -66,25 +146,65 @@ This project analyzes Bay Area Craigslist vehicle listings using econometric and
 
 \- tidyverse
 
+\- ggplot2
+
 \- randomForest
 
 \- xgboost
 
 \- DT
 
-\- Flexdashboard
+\- R Markdown
+
+\- Git
 
 \- GitHub Pages
 
 
 
-\## Author
+\---
 
 
 
-Alejandro Alvarez
+\## 📈 Key Results
 
 
 
-Economics Student | Data Analytics | Machine Learning
+\- 16,000 raw listings collected
+
+\- 15,280 cleaned observations
+
+\- 14,320 modeling observations
+
+\- Random Forest explained approximately 90% of price variation
+
+\- Mileage and vehicle age were the strongest predictors of vehicle value
+
+
+
+\---
+
+
+
+\## 📂 Repository Structure
+
+
+
+```text
+
+data/
+
+scripts/
+
+version\_1.Rmd
+
+version\_1.html
+
+Version 2.Rmd
+
+Version-2.html
+
+Version\_3\_Shiny\_Estimator.Rmd
+
+README.md
 
